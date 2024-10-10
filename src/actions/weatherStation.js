@@ -1,21 +1,23 @@
-import { FETCH_DATA_FULFILLED, FETCH_DATA_REJECTED } from "../constants/ActionTypes";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import { APP_ID } from "../constants/generalConstants";
-
 import axios from "axios";
 
-export const fetchData = (region) => (dispatch) => {
-  const { latitude, longitude } = region || {};
+export const fetchData = createAsyncThunk(
+  "weatherStation/fetchData",
+  async (region, { rejectWithValue }) => {
+    const { latitude, longitude } = region || {};
 
-  const getDataByCity = `https://api.openweathermap.org/data/2.5/forecast?q=${region}&units=metric&appid=${APP_ID}`;
-  const getDataByCoords = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&units=metric&appid=${APP_ID}`;
+    const getDataByCity = `https://api.openweathermap.org/data/2.5/forecast?q=${region}&units=metric&appid=${APP_ID}`;
+    const getDataByCoords = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&units=metric&appid=${APP_ID}`;
 
-  let location = typeof(region) === "object" ? getDataByCoords : getDataByCity;
+    const location =
+      typeof region === "object" ? getDataByCoords : getDataByCity;
 
-  return axios.get(location)
-    .then((response) => {
-      dispatch({type: FETCH_DATA_FULFILLED, payload: response.data});
-    })
-    .catch((err) => {
-      dispatch({type: FETCH_DATA_REJECTED, payload: err}); // Error handling
-    });
-};
+    try {
+      const response = await axios.get(location);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);

@@ -1,22 +1,18 @@
 import React from "react";
-import { shallow } from "enzyme";
-
-import configureStore from "redux-mock-store";
-const mockStore = configureStore();
-
+import { render, screen } from "@testing-library/react";
 import WeatherForecast from "../../components/WeatherForecast";
-import Dashboard from "../../components/Dashboard";
-
 import data from "./data/forecast.json";
 
 describe("<WeatherForecast />", () => {
   it("should render a div with `.weather-forecast-wrapper` class", () => {
-    const wrapper = shallow(<WeatherForecast data={data.weatherStation.data} />);
-    expect(wrapper.hasClass("weather-forecast-wrapper")).toBe(true);
+    render(<WeatherForecast data={data.weatherStation.data} />);
+    const forecastWrapper = screen.getByTestId("weather-forecast-wrapper");
+    expect(forecastWrapper).toHaveClass("weather-forecast-wrapper");
   });
 
   it("should contain a dashboard", () => {
-    const wrapper = shallow(<WeatherForecast data={data.weatherStation.data} />);
-    expect(wrapper.find(Dashboard)).toHaveLength(1);
+    render(<WeatherForecast data={data.weatherStation.data} />);
+    const dashboard = screen.getByTestId("dashboard");
+    expect(dashboard).toBeInTheDocument();
   });
 });

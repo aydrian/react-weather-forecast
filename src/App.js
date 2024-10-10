@@ -1,55 +1,66 @@
-import React, { Component } from "react";
-
-import { connect } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchData } from "./actions/weatherStation";
+import WeatherForecast from "./components/WeatherForecast";
 
-import WeatherForecast from './components/WeatherForecast';
+const App = () => {
+  const dispatch = useDispatch();
+  const forecast = useSelector((state) => state.weatherStation.data);
 
-@connect(store => {  
-  return {
-    forecast: store.weatherStation.data
-  }
-})
-export default class App extends Component {
-
-  // Fetches data by using geolocation. If the user blocks, or if the browser does not support the API, 
-  // fallsback to default location of London
-  componentDidMount() {  
-    const detectLocation = new Promise((resolve,reject) => {
+  useEffect(() => {
+    const detectLocation = new Promise((resolve, reject) => {
       if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          resolve(position.coords);
-        }, (error) => {
-          if(error.code === error.PERMISSION_DENIED) {
-            console.error("Error detecting location.");
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve(position.coords);
+          },
+          (error) => {
+            if (error.code === error.PERMISSION_DENIED) {
+              console.error("Error detecting location: Permission denied");
+            } else {
+              console.error("Error detecting location:", error.message);
+            }
+            reject(error);
           }
-        });
+        );
+      } else {
+        console.error("Geolocation not supported");
+        reject(new Error("Geolocation not supported"));
       }
     });
 
-    detectLocation.then((location) => {
-      this.props.dispatch(fetchData(location));
-    }).catch(() => {
-      this.props.dispatch(fetchData("london"));
-    });
-  }
+    detectLocation
+      .then((location) => {
+        dispatch(fetchData(location));
+      })
+      .catch(() => {
+        console.log("Using default location: London");
+        dispatch(fetchData("london"));
+      });
+  }, [dispatch]);
 
-  render() {
-    const { forecast } = this.props;
-
+  if (forecast === null) {
     return (
-      forecast === null ? (
-        <div className="loading">
-          <div className="spinner"></div>
-        </div>
-      ) : (
-        <div>
-          <WeatherForecast data={forecast} />
-          <div className="fork">
-            <a href="https://github.com/Gigacore/react-weather-forecast" target="_blank">Fork it on Github</a>
-          </div> 
-        </div>
-      )
+      <div className="loading">
+        <div className="spinner">Loading</div>
+      </div>
     );
   }
-}
+
+  return (
+    <div>
+      <WeatherForecast data={forecast} />
+      <div className="fork">
+        <a
+          href="https://github.com/Gigacore/react-weather-forecast"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Fork it on Github
+        </a>
+      </div>
+    </div>
+  );
+};
+
+export default App;

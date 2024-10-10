@@ -1,28 +1,28 @@
-import { FETCH_DATA_FULFILLED, FETCH_DATA_REJECTED } from "../constants/ActionTypes";
+import { createSlice } from "@reduxjs/toolkit";
+import { fetchData } from "../actions/weatherStation";
 
-export default function reducer(state = {
-  data: null,
-  status: null
-}, action) {
-  switch (action.type) {
-    case FETCH_DATA_FULFILLED: {
-      return {
-        ...state,
-        data: action.payload,
-        status: "success"
-      };
-      break;
-    }
-    case FETCH_DATA_REJECTED: {
-      return {
-        ...state,
-        status: "failed"
-      };
-
-      console.error(`Could not fetch the data from webservice. ${action.payload}.`); // eslint-disable-line
-      break;
-    }
+const weatherStationSlice = createSlice({
+  name: "weatherStation",
+  initialState: {
+    data: null,
+    status: "idle",
+    error: null
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchData.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.data = action.payload;
+      })
+      .addCase(fetchData.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
   }
+});
 
-  return state;
-}
+export default weatherStationSlice.reducer;

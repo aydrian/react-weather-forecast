@@ -1,8 +1,11 @@
 const path = require("path");
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 module.exports = {
+  mode: "production",
   entry: ["./src/index.js", "./src/styles/main.scss"],
   output: {
     filename: "bundle.js",
@@ -11,30 +14,32 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.scss/,
-        loader: ExtractTextPlugin.extract(["css-loader", "sass-loader"])
+        test: /\.scss$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"]
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loaders: "eslint-loader",
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loaders: "babel-loader"
+        use: ["babel-loader"]
       }
     ]
   },
   devServer: {
-    contentBase: "./public/",
-    watchContentBase: true
+    static: {
+      directory: path.join(__dirname, "public")
+    }
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin()]
   },
   plugins: [
-    new ExtractTextPlugin("bundle.css"),
-    new webpack.DefinePlugin({
-      "process.env.NODE_ENV": JSON.stringify("production")
+    new MiniCssExtractPlugin({
+      filename: "bundle.css"
     }),
-    new webpack.optimize.UglifyJsPlugin()
+    new ESLintPlugin({
+      extensions: ["js", "jsx"],
+      exclude: "/node_modules/"
+    })
   ]
 };

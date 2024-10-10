@@ -1,36 +1,51 @@
 import React from "react";
-import { render, mount, shallow } from "enzyme";
-
+import { render, screen } from "@testing-library/react";
+import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-const mockStore = configureStore();
-
 import Dashboard from "../../components/Dashboard";
+
+const mockStore = configureStore();
 const STATUS = "success";
 
 describe("<Dashboard />", () => {
-  it("renders an `.weather-dashboard`", () => {
-    const wrapper = render(<Dashboard store={mockStore({ weatherStation: {status: STATUS}})} />);
-    expect(wrapper.hasClass("weather-dashboard")).toBe(true);
+  const store = mockStore({ weatherStation: { status: STATUS } });
+
+  const renderDashboard = (props = {}) => {
+    return render(
+      <Provider store={store}>
+        <Dashboard {...props} />
+      </Provider>
+    );
+  };
+
+  it("renders the weather dashboard", () => {
+    renderDashboard();
+    expect(screen.getByTestId("weather-dashboard")).toBeInTheDocument();
   });
 
-  it("should contain a input field", () => {
-    const wrapper = render(<Dashboard store={mockStore({ weatherStation: {status: STATUS}})} />);
-    expect(wrapper.find(".city-input")).toHaveLength(1);
+  it("should contain an input field", () => {
+    renderDashboard();
+    expect(screen.getByPlaceholderText("Enter city name")).toBeInTheDocument();
   });
 
   it("should contain a change city button", () => {
-    const wrapper = render(<Dashboard store={mockStore({ weatherStation: {status: STATUS}})} />);
-    expect(wrapper.find("#change-city-btn")).toHaveLength(1);
+    renderDashboard();
+    expect(
+      screen.getByRole("button", { name: /change city/i })
+    ).toBeInTheDocument();
   });
 
   it("should contain app heading", () => {
-    const wrapper = mount(<Dashboard store={mockStore({ weatherStation: {status: STATUS}})} />);
-    const heading = <h1 className="heading">5-Day Weather Forecast</h1>;
-    expect(wrapper.contains(heading)).toEqual(true);
+    renderDashboard();
+    expect(
+      screen.getByRole("heading", { name: "5-Day Weather Forecast" })
+    ).toBeInTheDocument();
   });
 
   it("should receive city prop", () => {
-    const wrapper = shallow(<Dashboard city="london" store={mockStore({ weatherStation: {status: STATUS}})} />);
-    expect(wrapper.prop("city")).toBeDefined();
+    renderDashboard({ city: "london" });
+    // Since we can't directly check props with RTL, we need to verify the effect of the prop
+    // This might involve checking if 'london' appears in the rendered output
+    expect(screen.getByText(/london/i)).toBeInTheDocument();
   });
 });
