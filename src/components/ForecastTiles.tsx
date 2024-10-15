@@ -1,22 +1,35 @@
 import React, { useState, useCallback } from "react";
-import PropTypes from "prop-types";
 import DetailedInfo from "./DetailedInfo";
+import { WeatherData } from "../actions/weatherStation";
 
-const ForecastTiles = ({ forecasts }) => {
-  const [expandedIndex, setExpandedIndex] = useState(null);
+type ForecastItem = WeatherData["list"][0];
 
+interface ForecastTilesProps {
+  forecasts: ForecastItem[];
+}
+
+const ForecastTiles: React.FC<ForecastTilesProps> = ({ forecasts }) => {
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   // Filters the data by date and returns an Object containing a list of 5-day forecast.
-  const groupByDays = useCallback((data) => {
-    return data.reduce((list, item) => {
-      const forecastDate = item.dt_txt.substr(0, 10);
-      list[forecastDate] = list[forecastDate] || [];
-      list[forecastDate].push(item);
-      return list;
-    }, {});
-  }, []);
+  const groupByDays = useCallback(
+    (data: ForecastItem[]): { [key: string]: ForecastItem[] } => {
+      return data.reduce(
+        (list: { [key: string]: ForecastItem[] }, item: ForecastItem) => {
+          const forecastDate = new Date(item.dt * 1000)
+            .toISOString()
+            .split("T")[0];
+          list[forecastDate] = list[forecastDate] || [];
+          list[forecastDate].push(item);
+          return list;
+        },
+        {}
+      );
+    },
+    []
+  );
 
   // Returns week of the day
-  const getDayInfo = useCallback((data) => {
+  const getDayInfo = useCallback((data: ForecastItem[]): string => {
     const daysOfWeek = [
       "sunday",
       "monday",
@@ -31,29 +44,24 @@ const ForecastTiles = ({ forecasts }) => {
 
   // Fetches the icon using the icon code available in the forecast data.
   const getIcon = useCallback(
-    (data) => `https://openweathermap.org/img/w/${data[0].weather[0].icon}.png`,
+    (data: ForecastItem[]): string =>
+      `https://openweathermap.org/img/w/${data[0].weather[0].icon}.png`,
     []
   );
 
   // Gets the Minimum, Maximum and Avg Humidity temperatures of the day.
-  const getInfo = useCallback((data) => {
-    const min = [],
-      max = [],
-      humidity = [];
-    data.forEach((item) => {
-      max.push(item.main.temp_max);
-      min.push(item.main.temp_min);
-      humidity.push(item.main.humidity);
-    });
+  const getInfo = useCallback((data: ForecastItem[]): JSX.Element => {
+    const temps = data.map((item) => item.main.temp);
+    const humidities = data.map((item) => item.main.humidity);
 
     const minMax = {
-      min: Math.round(Math.min(...min)),
-      max: Math.round(Math.max(...max))
+      min: Math.round(Math.min(...temps)),
+      max: Math.round(Math.max(...temps))
     };
 
     // Gets the day's average humidity
     const avgHumidity = Math.round(
-      humidity.reduce((curr, next) => curr + next) / humidity.length
+      humidities.reduce((curr, next) => curr + next) / humidities.length
     );
 
     return (
@@ -67,7 +75,7 @@ const ForecastTiles = ({ forecasts }) => {
   }, []);
 
   // Toggles accordion to display hourly weather information
-  const showMoreInfo = useCallback((index) => {
+  const showMoreInfo = useCallback((index: number) => {
     setExpandedIndex((prevIndex) => (prevIndex === index ? null : index));
   }, []);
 
@@ -102,10 +110,6 @@ const ForecastTiles = ({ forecasts }) => {
       ))}
     </div>
   );
-};
-
-ForecastTiles.propTypes = {
-  forecasts: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
 export default ForecastTiles;

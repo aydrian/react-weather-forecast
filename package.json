@@ -2,6 +2,7 @@
   "name": "weather-forecast",
   "version": "1.0.0",
   "description": "webpack init",
+  "type": "module",
   "watch": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.3.0",
@@ -23,6 +24,13 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/redux-logger": "^3.0.13",
+    "@typescript-eslint/eslint-plugin": "^8.9.0",
+    "@typescript-eslint/parser": "^8.9.0",
+    "@vitejs/plugin-react": "^4.3.2",
     "axios": "^1.7.7",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.2.1",
@@ -49,21 +57,20 @@
     "sass": "^1.79.5",
     "sass-loader": "^16.0.2",
     "terser-webpack-plugin": "^5.3.10",
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.1.0"
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9"
   },
   "scripts": {
-    "start": "node -r @babel/register server.js",
-    "start:dev": "webpack serve --mode development --open",
-    "build": "webpack",
-    "watch": "webpack --watch",
+    "start:dev": "vite",
+    "build": "vite build",
     "lint": "./node_modules/.bin/eslint ./src",
-    "test": "jest"
+    "test": "jest",
+    "dev": "vite",
+    "preview": "vite preview"
   },
   "jest": {
     "setupFiles": [
-      "./src/test/jestSetup.js",
+      "./src/test/jestSetup.ts",
       "@testing-library/jest-dom/extend-expect"
     ],
     "transform": {

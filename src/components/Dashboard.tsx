@@ -1,21 +1,25 @@
-import React, { useRef } from "react";
+import React, { useRef, KeyboardEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import PropTypes from "prop-types";
 import { fetchData } from "../actions/weatherStation";
+import { RootState, AppDispatch } from "../store";
 
-const Dashboard = ({ city }) => {
-  const dispatch = useDispatch();
-  const status = useSelector((state) => state.weatherStation.status);
-  const cityInputRef = useRef(null);
+interface DashboardProps {
+  city: string;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ city }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const status = useSelector((state: RootState) => state.weatherStation.status);
+  const cityInputRef = useRef<HTMLInputElement>(null);
 
   const updateCity = () => {
-    const cityValue = cityInputRef.current.value;
-    if (cityValue.length !== 0) {
+    const cityValue = cityInputRef.current?.value;
+    if (cityValue && cityValue.length !== 0) {
       dispatch(fetchData(cityValue));
     }
   };
 
-  const onKeyPress = (e) => {
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       updateCity();
     }
@@ -38,7 +42,7 @@ const Dashboard = ({ city }) => {
             className="city-input"
             id="city-name"
             ref={cityInputRef}
-            onKeyPress={onKeyPress}
+            onKeyDown={onKeyDown}
             placeholder={city}
           />
           <input
@@ -53,10 +57,6 @@ const Dashboard = ({ city }) => {
       <span className="error">Please enter valid city name!</span>
     </div>
   );
-};
-
-Dashboard.propTypes = {
-  city: PropTypes.string.isRequired
 };
 
 export default Dashboard;
